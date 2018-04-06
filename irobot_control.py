@@ -1,20 +1,16 @@
-import platform
-
-builder = {}
-if platform.release() == "Windows":
-    import gtk
-elif platform.release() == "Linux":
-    import gi
-    gi.require_version('Gtk', '3.0')
-    from gi.repository import Gtk
+import pygtk
+pygtk.require('2.0')
+import gtk
 
 import os
 import socket
 import sys
 
-builder = Gtk.Builder()
-builder.add_from_file(os.path.join(sys._MEIPASS, "final_project.glade"))
-CON = connect()
+builder = gtk.Builder()
+if getattr(sys, 'frozen', False):
+    builder.add_from_file(os.path.join(sys._MEIPASS, "final_projectgtk2.glade"))
+else:
+    builder.add_from_file("final_projectgtk2.glade")
 
 REVERSE = False
 
@@ -48,7 +44,7 @@ def toggle_reverse(button):
 
 
 handlers = {
-    "onDelete": Gtk.main_quit,
+    "onDelete": gtk.main_quit,
     "doScan": do_scan,
     "doStart": start,
     "doStop": stop,
@@ -57,6 +53,7 @@ handlers = {
     "toggleReverse": toggle_reverse
 }
 
-builder.get_object("main-window").show_all()
+#CON = connect()
+builder.get_object("main-window").show()
 builder.connect_signals(handlers)
-Gtk.main()
+gtk.main()
