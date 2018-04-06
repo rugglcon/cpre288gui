@@ -1,6 +1,12 @@
-import gi
-gi.require_version('Gtk', '3.0')
-from gi.repository import Gtk
+import platform
+
+builder = {}
+if platform.release() == "Windows":
+    import gtk
+elif platform.release() == "Linux":
+    import gi
+    gi.require_version('Gtk', '3.0')
+    from gi.repository import Gtk
 
 import os
 import socket
