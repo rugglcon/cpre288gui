@@ -145,7 +145,7 @@ class Client():
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.addr, self.port))
 
-client = Client("192.168.1.1", 42880)
+client = Client("192.168.1.1", 288)
 handlers = {
     "onDelete": client.close,
     "doScan": client.do_scan,
