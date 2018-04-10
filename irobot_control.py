@@ -14,14 +14,14 @@ if getattr(sys, 'frozen', False):
 else:
     builder.add_from_file("final_projectgtk2.glade")
 
-REVERSE = False
-
 class Client():
     def __init__(self, addr, port):
+        self.addr = addr
+        self.port = port
+        self.reverse = False
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.s.connect((addr, port))
 
-    def close(self):
+    def close(self, widget, data):
         self.s.close()
         gtk.main_quit()
 
@@ -95,7 +95,7 @@ class Client():
 
     def start(self, button):
         speed = builder.get_object("robot-speed").get_text()
-        if REVERSE:
+        if self.reverse:
             print("starting backward " + speed)
             self.send_command("f" + speed)
         else:
@@ -117,10 +117,11 @@ class Client():
         self.send_command("r" + degrees)
 
     def toggle_reverse(self, button):
-        global REVERSE
-        REVERSE = not REVERSE
-        print(REVERSE)
+        self.reverse = not self.reverse
+        print(self.reverse)
 
+    def do_connect(button):
+        self.s.connect((self.addr, self.port))
 
 client = Client('192.168.1.1', 42880)
 handlers = {
@@ -130,7 +131,8 @@ handlers = {
     "doStop": client.stop,
     "doTurnLeft": client.turn_left,
     "doTurnRight": client.turn_right,
-    "toggleReverse": client.toggle_reverse
+    "toggleReverse": client.toggle_reverse,
+    "onConnect": client.do_connect
 }
 builder.get_object("main-window").set_title("iRobot Command Center")
 builder.get_object("main-window").show()
