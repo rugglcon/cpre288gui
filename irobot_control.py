@@ -101,13 +101,13 @@ class Client():
                 plotter.add_object(obj["angle"], obj["distance"], obj["width"])
                 index += 1
 
-            basewidth = 450
-            img = PIL.Image.open("test.png")
+            plotter.draw("objects.png")
+            basewidth = 500
+            img = PIL.Image.open("objects.png")
             wpercent = (basewidth / float(img.size[0]))
             hsize = int((float(img.size[1]) * float(wpercent)))
             img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
-            img.save("test.png")
-            plotter.draw("objects.png")
+            img.save("objects.png")
             builder.get_object("image1").set_from_file("objects.png")
 
     def do_scan(self, button):
@@ -184,5 +184,5 @@ mock_info = str('''
 builder.get_object("main-window").set_title("iRobot Command Center")
 builder.get_object("main-window").show()
 builder.connect_signals(handlers)
-client.parse_response(mock_info)
+#client.parse_response(mock_info)
 gtk.main()
