@@ -8,6 +8,8 @@ import socket
 import sys
 import time
 
+import plot
+
 builder = gtk.Builder()
 if getattr(sys, 'frozen', False):
     builder.add_from_file(os.path.join(sys._MEIPASS, "final_projectgtk2.glade"))
@@ -34,15 +36,19 @@ class Client():
             timeout = 20
             time.sleep(15)
         elif cmd[0] == 'f':
-            timeout = 2
+            timeout = 0
         elif cmd[0] == 'b':
-            timeout = 2
+            timeout = 0
         elif cmd[0] == 'r':
-            timeout = 2
+            timeout = 0
         elif cmd[0] == 'l':
-            timeout = 2
+            timeout = 0
         elif cmd[0] == 'h':
-            timeout = 2
+            timeout = 0
+
+        if timeout == 0:
+            self.delete_objects()
+            return
 
         self.s.setblocking(0)
         data = []
@@ -70,24 +76,31 @@ class Client():
         self.s.settimeout(None)
         self.parse_response(msg)
 
+    def delete_objects(self):
+        builder.get_object("obj-list").foreach(gtk.Widget.destroy)
+
     def parse_response(self, msg):
         json_msg = json.loads(msg)
         if json_msg["error"] == 1:
             print("something went wrong :/")
         else:
+            self.delete_objects()
+            obj_window = builder.get_object("obj-list")
             data = json_msg["data"]
             builder.get_object("ping-sensor").set_text("PING sensor: " + data["ping"])
             builder.get_object("ir-sensor").set_text("IR sensor: " + data["ir"])
             objects = data["objects"]
-            obj_window = builder.get_object("obj-list")
-            obj_window.foreach(gtk.Widget.destroy)
+            plotter = plot.Plotter()
             index = 0
             for obj in objects:
                 obj_window.add(gtk.Label("Object " + index))
                 obj_window.add(gtk.Label("Distance: " + obj["distance"]))
                 obj_window.add(gtk.Label("Width: " + obj["width"]))
                 obj_window.add(gtk.Label("Angle: " + obj["angle"]))
+                plotter.add_object(obj["angle"], obj["distance"], obj["width"])
                 index += 1
+
+            plotter.draw('objects.png')
 
     def do_scan(self, button):
         print("scanning")
@@ -120,7 +133,7 @@ class Client():
         self.reverse = not self.reverse
         print(self.reverse)
 
-    def do_connect(button):
+    def do_connect(self, button):
         self.s.connect((self.addr, self.port))
 
 client = Client('192.168.1.1', 42880)
