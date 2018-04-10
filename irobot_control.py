@@ -1,5 +1,5 @@
 import pygtk
-pygtk.require('2.0')
+pygtk.require("2.0")
 import gtk
 
 import json
@@ -11,7 +11,7 @@ import time
 import plot
 
 builder = gtk.Builder()
-if getattr(sys, 'frozen', False):
+if getattr(sys, "frozen", False):
     builder.add_from_file(os.path.join(sys._MEIPASS, "final_projectgtk2.glade"))
 else:
     builder.add_from_file("final_projectgtk2.glade")
@@ -32,18 +32,18 @@ class Client():
 
         timeout = 0
 
-        if cmd[0] == 's':
+        if cmd[0] == "s":
             timeout = 20
             time.sleep(15)
-        elif cmd[0] == 'f':
+        elif cmd[0] == "f":
             timeout = 0
-        elif cmd[0] == 'b':
+        elif cmd[0] == "b":
             timeout = 0
-        elif cmd[0] == 'r':
+        elif cmd[0] == "r":
             timeout = 0
-        elif cmd[0] == 'l':
+        elif cmd[0] == "l":
             timeout = 0
-        elif cmd[0] == 'h':
+        elif cmd[0] == "h":
             timeout = 0
 
         if timeout == 0:
@@ -61,11 +61,11 @@ class Client():
                 msg = "".join(data)
                 break
             elif time.time() - start > timeout * 2:
-                msg = "{'error': 1}"
+                msg = '{"error": 1}'
 
             try:
                 response = self.s.recv(4096)
-                cur_data = response.decode('ascii')
+                cur_data = response.decode("ascii")
                 if cur_data:
                     data.append(cur_data)
                     start = time.time()
@@ -87,20 +87,20 @@ class Client():
             self.delete_objects()
             obj_window = builder.get_object("obj-list")
             data = json_msg["data"]
-            builder.get_object("ping-sensor").set_text("PING sensor: " + data["ping"])
-            builder.get_object("ir-sensor").set_text("IR sensor: " + data["ir"])
+            builder.get_object("ping-sensor").set_text("PING sensor: " + str(data["ping"]))
+            builder.get_object("ir-sensor").set_text("IR sensor: " + str(data["ir"]))
             objects = data["objects"]
             plotter = plot.Plotter()
             index = 0
             for obj in objects:
-                obj_window.add(gtk.Label("Object " + index))
-                obj_window.add(gtk.Label("Distance: " + obj["distance"]))
-                obj_window.add(gtk.Label("Width: " + obj["width"]))
-                obj_window.add(gtk.Label("Angle: " + obj["angle"]))
+                obj_window.add(gtk.Label("Object " + str(index)))
+                obj_window.add(gtk.Label("Distance: " + str(obj["distance"])))
+                obj_window.add(gtk.Label("Width: " + str(obj["width"])))
+                obj_window.add(gtk.Label("Angle: " + str(obj["angle"])))
                 plotter.add_object(obj["angle"], obj["distance"], obj["width"])
                 index += 1
 
-            plotter.draw('objects.png')
+            plotter.draw("objects.png")
             builder.get_object("image1").set_from_file("objects.png")
 
     def do_scan(self, button):
@@ -138,7 +138,7 @@ class Client():
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.addr, self.port))
 
-client = Client('192.168.1.1', 42880)
+client = Client("192.168.1.1", 42880)
 handlers = {
     "onDelete": client.close,
     "doScan": client.do_scan,
@@ -149,7 +149,33 @@ handlers = {
     "toggleReverse": client.toggle_reverse,
     "onConnect": client.do_connect
 }
+mock_info = str('''
+{
+    "error": 0,    
+    "data": {        
+        "ping": 30,        
+        "ir": 32,        
+        "objects": [            
+            {                
+                "distance": 60,                
+                "width": 8.5,                
+                "angle": 148            
+            },            
+            {                
+                "distance": 77,                
+                "width": 6,                
+                "angle": 60            
+            },            
+            {                
+                "distance": 48,                
+                "width": 8.5,                
+                "angle": 10            
+            }        
+        ]    
+    }
+}''')
 builder.get_object("main-window").set_title("iRobot Command Center")
 builder.get_object("main-window").show()
 builder.connect_signals(handlers)
+client.parse_response(mock_info)
 gtk.main()
