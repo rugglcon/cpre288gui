@@ -101,6 +101,7 @@ class Client():
                 index += 1
 
             plotter.draw('objects.png')
+            builder.get_object("image1").set_from_file("objects.png")
 
     def do_scan(self, button):
         print("scanning")
@@ -134,6 +135,7 @@ class Client():
         print(self.reverse)
 
     def do_connect(self, button):
+        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.addr, self.port))
 
 client = Client('192.168.1.1', 42880)
