@@ -4,6 +4,7 @@ import gtk
 
 import json
 import os
+import PIL
 import socket
 import sys
 import time
@@ -100,6 +101,12 @@ class Client():
                 plotter.add_object(obj["angle"], obj["distance"], obj["width"])
                 index += 1
 
+            basewidth = 450
+            img = PIL.Image.open("test.png")
+            wpercent = (basewidth / float(img.size[0]))
+            hsize = int((float(img.size[1]) * float(wpercent)))
+            img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+            img.save("test.png")
             plotter.draw("objects.png")
             builder.get_object("image1").set_from_file("objects.png")
 
