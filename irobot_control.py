@@ -82,6 +82,7 @@ class Client():
         builder.get_object("obj-list").foreach(gtk.Widget.destroy)
 
     def parse_response(self, msg):
+        print(msg)
         json_msg = json.loads(msg)
         if json_msg["error"] == 1:
             print("something went wrong :/")
