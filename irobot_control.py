@@ -33,16 +33,16 @@ class Client():
 
         timeout = 0
 
+        if cmd.isdigit():
+            self.delete_objects()
+            return
+
         if cmd[0] == "s":
             timeout = 20
             time.sleep(15)
         elif cmd[0] == "f":
             timeout = 0
         elif cmd[0] == "b":
-            timeout = 0
-        elif cmd[0] == "r":
-            timeout = 0
-        elif cmd[0] == "l":
             timeout = 0
         elif cmd[0] == "h":
             timeout = 0
@@ -130,12 +130,22 @@ class Client():
     def turn_left(self, button):
         degrees = builder.get_object("turn-degrees").get_text()
         print("turning left " + degrees)
-        self.send_command("l" + degrees)
+        if degrees == 90:
+            self.send_command(4)
+        elif degrees == 45:
+            self.send_command(3)
+        elif degrees == 180:
+            self.send_command(5)
 
     def turn_right(self, button):
         degrees = builder.get_object("turn-degrees").get_text()
         print("turning right " + degrees)
-        self.send_command("r" + degrees)
+        if degrees == 90:
+            self.send_command(2)
+        elif degrees == 45:
+            self.send_command(1)
+        elif degrees == 180:
+            self.send_command(5)
 
     def toggle_reverse(self, button):
         self.reverse = not self.reverse
@@ -158,27 +168,27 @@ handlers = {
 }
 mock_info = str('''
 {
-    "error": 0,    
-    "data": {        
-        "ping": 30,        
-        "ir": 32,        
-        "objects": [            
-            {                
-                "distance": 60,                
-                "width": 8.5,                
-                "angle": 148            
-            },            
-            {                
-                "distance": 77,                
-                "width": 6,                
-                "angle": 60            
-            },            
-            {                
-                "distance": 48,                
-                "width": 8.5,                
-                "angle": 10            
-            }        
-        ]    
+    "error": 0,
+    "data": {
+        "ping": 30,
+        "ir": 32,
+        "objects": [
+            {
+                "distance": 60,
+                "width": 8.5,
+                "angle": 148
+            },
+            {
+                "distance": 77,
+                "width": 6,
+                "angle": 60
+            },
+            {
+                "distance": 48,
+                "width": 8.5,
+                "angle": 10
+            }
+        ]
     }
 }''')
 builder.get_object("main-window").set_title("iRobot Command Center")
