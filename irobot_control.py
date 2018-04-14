@@ -118,10 +118,10 @@ class Client():
         speed = builder.get_object("robot-speed").get_text()
         if self.reverse:
             print("starting backward " + speed)
-            self.send_command("f" + speed)
+            self.send_command("f")
         else:
             print("starting forward " + speed)
-            self.send_command("b" + speed)
+            self.send_command("b")
 
     def stop(self, button):
         print("stopping")
