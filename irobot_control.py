@@ -23,6 +23,7 @@ class Client():
         self.port = port
         self.reverse = False
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.s.connect((self.addr, self.port))
 
     def close(self, widget, data):
         self.s.close()
