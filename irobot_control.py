@@ -29,7 +29,7 @@ class Client():
         gtk.main_quit()
 
     def send_command(self, cmd):
-        self.s.sendall((cmd + '\0').encode())
+        self.s.send(cmd)
 
         timeout = 0
 
