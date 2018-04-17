@@ -117,7 +117,7 @@ class Client():
 
     def start(self, button):
         speed = builder.get_object("robot-speed").get_text()
-        if self.reverse:
+        if not self.reverse:
             print("starting backward " + speed)
             self.send_command("f")
         else:
@@ -132,21 +132,21 @@ class Client():
         degrees = builder.get_object("turn-degrees").get_text()
         print("turning left " + degrees)
         if degrees == 90:
-            self.send_command(4)
+            self.send_command('4')
         elif degrees == 45:
-            self.send_command(3)
+            self.send_command('3')
         elif degrees == 180:
-            self.send_command(5)
+            self.send_command('5')
 
     def turn_right(self, button):
         degrees = builder.get_object("turn-degrees").get_text()
         print("turning right " + degrees)
         if degrees == 90:
-            self.send_command(2)
+            self.send_command('2')
         elif degrees == 45:
-            self.send_command(1)
+            self.send_command('1')
         elif degrees == 180:
-            self.send_command(5)
+            self.send_command('5')
 
     def toggle_reverse(self, button):
         self.reverse = not self.reverse
