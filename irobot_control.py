@@ -40,13 +40,28 @@ class Client():
 
         if cmd[0] == "s":
             timeout = 20
-            time.sleep(15)
-        elif cmd[0] == "f":
-            timeout = 0
+            time.sleep(3)
+        elif cmd[0] == "g":
+            timeout = 10
         elif cmd[0] == "b":
             timeout = 0
         elif cmd[0] == "h":
             timeout = 0
+        elif cmd[0] == "l":
+            timeout = 10
+            time.sleep(1)
+        elif cmd[0] == "r":
+            timeout = 10
+            time.sleep(1)
+        elif cmd[0] == "p":
+            timeout = 10
+            time.sleep(1)
+        elif cmd[0] == "n":
+            timeout = 10
+            time.sleep(1)
+        elif cmd[0] == "e":
+            timeout = 10
+            time.sleep(1)
 
         if timeout == 0:
             self.delete_objects()
@@ -76,7 +91,10 @@ class Client():
             except:
                 pass
         self.s.settimeout(None)
-        self.parse_response(msg)
+        if cmd[0] == "s":
+            self.parse_objects(msg)
+        else:
+            self.parse_response(msg)
 
     def delete_objects(self):
         builder.get_object("obj-list").foreach(gtk.Widget.destroy)
@@ -86,31 +104,51 @@ class Client():
         json_msg = json.loads(msg)
         if json_msg["error"] == 1:
             print("something went wrong :/")
-        else:
-            self.delete_objects()
-            obj_window = builder.get_object("obj-list")
-            data = json_msg["data"]
-            builder.get_object("ping-sensor").set_text("PING sensor: " + str(data["ping"]))
-            builder.get_object("ir-sensor").set_text("IR sensor: " + str(data["ir"]))
-            objects = data["objects"]
-            plotter = plot.Plotter()
-            index = 0
-            for obj in objects:
-                obj_window.add(gtk.Label("Object " + str(index)))
-                obj_window.add(gtk.Label("Distance: " + str(obj["distance"])))
-                obj_window.add(gtk.Label("Width: " + str(obj["width"])))
-                obj_window.add(gtk.Label("Angle: " + str(obj["angle"])))
-                plotter.add_object(obj["angle"], obj["distance"], obj["width"])
-                index += 1
+            return
 
-            plotter.draw("objects.png")
-            basewidth = 500
-            img = PIL.Image.open("objects.png")
-            wpercent = (basewidth / float(img.size[0]))
-            hsize = int((float(img.size[1]) * float(wpercent)))
-            img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
-            img.save("objects.png")
-            builder.get_object("image1").set_from_file("objects.png")
+        self.delete_objects()
+        builder.get_object("left-bumper").set_text("Left Bumper: " + str(json_msg["bump_left"]))
+        builder.get_object("right-bumper").set_text("Right Bumper: " + str(json_msg["bump_right"]))
+        builder.get_object("cliff-left").set_text("Left: " + str(json_msg["cliff_left"]))
+        builder.get_object("cliff-right").set_text("Right: " + str(json_msg["cliff_right"]))
+        builder.get_object("cliff-left-front").set_text("Left Front: " + str(json_msg["cliff_front_left"]))
+        builder.get_object("cliff-right-front").set_text("Right Front: " + str(json_msg["cliff_front_right"]))
+        builder.get_object("cliff-signal-left").set_text("Left: " + str(json_msg["cliff_signal_left"]))
+        builder.get_object("cliff-signal-right").set_text("Right: " + str(json_msg["cliff_signal_right"]))
+        builder.get_object("cliff-signal-left-front").set_text("Left Front: " + str(json_msg["cliff_signal_front_left"]))
+        builder.get_object("cliff-signal-right-front").set_text("Right Front: " + str(json_msg["cliff_signal_front_right"]))
+
+    def parse_objects(self, msg):
+        print(msg)
+        json_msg = json.loads(msg)
+        if json_msg["error"] == 1:
+            print("something went wrong :/")
+            return
+
+        self.delete_objects()
+        obj_window = builder.get_object("obj-list")
+        data = json_msg["data"]
+        builder.get_object("ping-sensor").set_text("PING sensor: " + str(data["ping"]))
+        builder.get_object("ir-sensor").set_text("IR sensor: " + str(data["ir"]))
+        objects = data["objects"]
+        plotter = plot.Plotter()
+        index = 0
+        for obj in objects:
+            obj_window.add(gtk.Label("Object " + str(index)))
+            obj_window.add(gtk.Label("Distance: " + str(obj["distance"])))
+            obj_window.add(gtk.Label("Width: " + str(obj["width"])))
+            obj_window.add(gtk.Label("Angle: " + str(obj["angle"])))
+            plotter.add_object(obj["angle"], obj["distance"], obj["width"])
+            index += 1
+
+        plotter.draw("objects.png")
+        basewidth = 500
+        img = PIL.Image.open("objects.png")
+        wpercent = (basewidth / float(img.size[0]))
+        hsize = int((float(img.size[1]) * float(wpercent)))
+        img = img.resize((basewidth, hsize), PIL.Image.ANTIALIAS)
+        img.save("objects.png")
+        builder.get_object("image1").set_from_file("objects.png")
 
     def do_scan(self, button):
         print("scanning")
@@ -120,7 +158,7 @@ class Client():
         speed = builder.get_object("robot-speed").get_text()
         if not self.reverse:
             print("starting backward " + speed)
-            self.send_command("f")
+            self.send_command("g")
         else:
             print("starting forward " + speed)
             self.send_command("b")
@@ -133,21 +171,21 @@ class Client():
         degrees = builder.get_object("turn-degrees").get_text()
         print("turning left " + degrees)
         if degrees == 90:
-            self.send_command('4')
+            self.send_command('l')
         elif degrees == 45:
-            self.send_command('3')
+            self.send_command('n')
         elif degrees == 180:
-            self.send_command('5')
+            self.send_command('e')
 
     def turn_right(self, button):
         degrees = builder.get_object("turn-degrees").get_text()
         print("turning right " + degrees)
         if degrees == 90:
-            self.send_command('2')
+            self.send_command('r')
         elif degrees == 45:
-            self.send_command('1')
+            self.send_command('p')
         elif degrees == 180:
-            self.send_command('5')
+            self.send_command('e')
 
     def toggle_reverse(self, button):
         self.reverse = not self.reverse
