@@ -1,15 +1,18 @@
 import pygtk
 pygtk.require("2.0")
-import gtk
+import gtk, gobject
 
 import json
 import os
 import PIL
 import socket
 import sys
+import threading
 import time
 
 import plot
+
+gobject.threads_init()
 
 builder = gtk.Builder()
 if getattr(sys, "frozen", False):
@@ -22,12 +25,17 @@ class Client():
         self.addr = addr
         self.port = port
         self.reverse = False
+        self.command_lock = threading.Lock()
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.addr, self.port))
 
     def close(self, widget, data):
         self.s.close()
         gtk.main_quit()
+
+    def send_command_thread(self, cmd):
+        thread = threading.Thread(target=self.send_command, args=cmd)
+        thread.start()
 
     def send_command(self, cmd):
         self.s.send(cmd)
@@ -39,28 +47,28 @@ class Client():
             return
 
         if cmd[0] == "s":
-            timeout = 20
+            timeout = 10
             time.sleep(3)
         elif cmd[0] == "g":
-            timeout = 10
+            timeout = 6
         elif cmd[0] == "b":
             timeout = 0
         elif cmd[0] == "h":
             timeout = 0
         elif cmd[0] == "l":
-            timeout = 10
+            timeout = 6
             time.sleep(1)
         elif cmd[0] == "r":
-            timeout = 10
+            timeout = 6
             time.sleep(1)
         elif cmd[0] == "p":
-            timeout = 10
+            timeout = 6
             time.sleep(1)
         elif cmd[0] == "n":
-            timeout = 10
+            timeout = 6
             time.sleep(1)
         elif cmd[0] == "e":
-            timeout = 10
+            timeout = 6
             time.sleep(1)
 
         if timeout == 0:
@@ -101,7 +109,12 @@ class Client():
 
     def parse_response(self, msg):
         print(msg)
-        json_msg = json.loads(msg)
+        try:
+            json_msg = json.loads(msg)
+        except Exception:
+            print("something went wrong, message could be formatted wrong?")
+            return
+
         if json_msg["error"] == 1:
             print("something went wrong :/")
             return
@@ -120,7 +133,12 @@ class Client():
 
     def parse_objects(self, msg):
         print(msg)
-        json_msg = json.loads(msg)
+        try:
+            json_msg = json.loads(msg)
+        except Exception:
+            print("something went wrong, message could be formatted wrong?")
+            return
+
         if json_msg["error"] == 1:
             print("something went wrong :/")
             return
@@ -152,46 +170,47 @@ class Client():
 
     def do_scan(self, button):
         print("scanning")
-        self.send_command("s")
+        self.send_command_thread("s")
 
     def start(self, button):
         speed = builder.get_object("robot-speed").get_text()
         if not self.reverse:
-            print("starting backward " + speed)
-            self.send_command("g")
-        else:
             print("starting forward " + speed)
-            self.send_command("b")
+            self.send_command_thread("g")
+        else:
+            print("starting backward " + speed)
+            self.send_command_thread("b")
 
     def stop(self, button):
         print("stopping")
-        self.send_command("h")
+        self.send_command_thread("h")
 
     def turn_left(self, button):
         degrees = builder.get_object("turn-degrees").get_text()
         print("turning left " + degrees)
-        if degrees == 90:
-            self.send_command('l')
-        elif degrees == 45:
-            self.send_command('n')
-        elif degrees == 180:
-            self.send_command('e')
+        if degrees == "90":
+            self.send_command_thread('l')
+        elif degrees == "45":
+            self.send_command_thread('n')
+        elif degrees == "180":
+            self.send_command_thread('e')
 
     def turn_right(self, button):
         degrees = builder.get_object("turn-degrees").get_text()
         print("turning right " + degrees)
-        if degrees == 90:
-            self.send_command('r')
-        elif degrees == 45:
-            self.send_command('p')
-        elif degrees == 180:
-            self.send_command('e')
+        if degrees == "90":
+            self.send_command_thread('r')
+        elif degrees == "45":
+            self.send_command_thread('p')
+        elif degrees == "180":
+            self.send_command_thread('e')
 
     def toggle_reverse(self, button):
         self.reverse = not self.reverse
         print(self.reverse)
 
     def do_connect(self, button):
+        self.s.close()
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((self.addr, self.port))
 
